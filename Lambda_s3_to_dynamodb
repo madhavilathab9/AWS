@@ -1,0 +1,25 @@
+import boto3
+s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+def lambda_handler(event, context):
+    #print('triggered')
+    bucket = 'student-details-s3-to-dynamodb'
+    key = 'Student-Details.csv'
+    obj = s3.get_object(Bucket = bucket, Key = key)
+    rows = obj['Body'].read().decode('utf-8').split('\n')
+    print(rows)
+    table = dynamodb.Table('Student-Details')
+    for i in range(0,len(rows)-1):
+        table.put_item(
+            Item={
+                'ID':int(rows[i].split(',')[0]),
+                'Name':rows[i].split(',')[1],
+                'Email':rows[i].split(',')[2],
+                'Address':{
+                    'road':rows[i].split(',')[4],
+                    'city':rows[i].split(',')[5],
+                    'state':rows[i].split(',')[6]
+                }
+            }
+        )
+    return 'Hello from Lambda'
